@@ -1,3 +1,6 @@
+'''
+爬取图片到硬盘
+'''
 import os
 import requests
 import urllib.parse
@@ -8,7 +11,6 @@ import asyncio
 import threading
 
 save_path = "/media/smile/新加卷/imgs/"
-text_save_path = "/media/smile/新加卷/imgs/cosplay.txt"
 url = "https://www.x6o.com/"
 cookie = "__cf_bm=I_4h0LwVuF8wz8j7rdAUliMsQgf.MYg.PsqdH1jYKic-1675411382-0-AfvD0yR9vfW8HSckeoXn7ohtF7B1LfYtt3vNqzJQg2yJz3qv0NsBDtPFb5HCfMgt95PixT7NsIq92dWLGFjIu0WFWK36QMge9dF0kXt9Y5/hWGavD9M+UkXbHc96a1iBgyaPrkBEYne/rdy4VbWzGLI="
 headers = {
@@ -48,8 +50,9 @@ def save_articles_one_img(href, title, title_path):
         res = requests.get(href, headers=headers)
         if res.status_code == 404:
             print("图片下载出错---->，准备下载下一张")
-        with open(title_path + '/' + img_name, "wb") as f:
-            f.write(res.content)
+        else:
+            with open(title_path + '/' + img_name, "wb") as f:
+                f.write(res.content)
     except requests.exceptions.ConnectTimeout:
         print(f"{title}，下载超时，退出")
     except Exception as ex:
@@ -64,17 +67,7 @@ class MyThread(threading.Thread):
         self.title_path = title_path
 
     def run(self):
-        try:
-            img_name = self.href.split('/')[-1]
-            res = requests.get(self.href, headers=headers)
-            if res.status_code == 404:
-                print("图片下载出错---->，准备下载下一张")
-            with open(self.title_path + '/' + img_name, "wb") as f:
-                f.write(res.content)
-        except requests.exceptions.ConnectTimeout:
-            print(f"{self.title}，下载超时，退出")
-        except Exception as ex:
-            print(ex)
+        save_articles_one_img(self.href, self.title, self.title_path)
 
 
 # 下载单个写真集
@@ -100,7 +93,6 @@ async def save_articles_img(detail_url):
                 thread1 = MyThread(href, title, title_path)
                 # 开启新线程
                 thread1.start()
-            #     save_articles_one_img(href, title, title_path)
             print(f"{title}，开始下载")
     except requests.exceptions.ConnectTimeout:
         print("下载超时，退出")
